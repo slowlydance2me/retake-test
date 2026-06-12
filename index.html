@@ -317,7 +317,7 @@
             background: rgba(255,255,255,0.06);
             height: 8px;
             border-radius: 4px;
-            overflow: visible;
+            overflow: hidden;
             position: relative;
         }
 
@@ -2554,13 +2554,18 @@
                     document.getElementById('testPage').style.display = 'block';
 
                     // 恢复选中状态
-                    for (const [qNum, score] of Object.entries(answers)) {
+                    for (const [qNum, ans] of Object.entries(answers)) {
                         const question = document.getElementById(`q${qNum}`);
                         if (question) {
                             const options = question.querySelectorAll('.option');
-                            const scoreIndex = [4, 3, 2, 1].indexOf(score);
-                            if (scoreIndex !== -1 && options[scoreIndex]) {
-                                options[scoreIndex].classList.add('selected');
+                            let idx = -1;
+                            if (typeof ans === 'object' && ans.index !== undefined) {
+                                idx = ans.index;
+                            } else {
+                                idx = [4, 3, 2, 1].indexOf(ans);
+                            }
+                            if (idx !== -1 && options[idx]) {
+                                options[idx].classList.add('selected');
                             }
                             const analysis = document.getElementById(`analysis${qNum}`);
                             if (analysis) analysis.classList.add('show');
@@ -2592,7 +2597,8 @@
             options.forEach(opt => opt.classList.remove('selected'));
             element.classList.add('selected');
 
-            answers[questionNum] = score;
+            const optionIndex = Array.from(options).indexOf(element);
+            answers[questionNum] = { score: score, index: optionIndex };
             recalculateScores();
             saveProgress();
 
@@ -2611,10 +2617,11 @@
 
         function recalculateScores() {
             Object.keys(scores).forEach(key => scores[key] = 0);
-            for (const [qNum, score] of Object.entries(answers)) {
+            for (const [qNum, ans] of Object.entries(answers)) {
                 const dimension = dimensionMap[qNum];
                 if (scores.hasOwnProperty(dimension)) {
-                    scores[dimension] += score;
+                    const s = typeof ans === 'object' ? ans.score : ans;
+                    scores[dimension] += s;
                 }
             }
         }
@@ -3056,9 +3063,9 @@
             const btn = document.querySelector('.btn-secondary');
             const originalText = btn.textContent;
             btn.textContent = '✓ 已复制';
-            btn.style.background = '#10b981';
-            btn.style.color = 'white';
-            btn.style.borderColor = '#10b981';
+            btn.style.background = '#34d399';
+            btn.style.color = '#0f0e1a';
+            btn.style.borderColor = '#34d399';
             setTimeout(() => {
                 btn.textContent = originalText;
                 btn.style.background = '';
